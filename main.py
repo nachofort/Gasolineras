@@ -16,16 +16,17 @@ st.set_page_config(
 
 #Función para obtener y limpiar datos (ETL)
 @st.cache_data
-def cargar_datos():
-    url = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/"
+def cargar_datos(id_ccaa):
+    url = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroCCAA/{id_ccaa}"
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json'
     }
 
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, verify=False, timeout=10)
         if response.status_code == 200:
             data = response.json()
             lista_gasolineras = data['ListaEESSPrecio']
@@ -62,7 +63,7 @@ def main():
     st.markdown("Datos a tiempo real del **Ministerio para la Transición Ecológica**.")
 
     #Cargar datos
-    df = cargar_datos()
+    df = cargar_datos(13)
 
     if not df.empty:
         #FILTROS
