@@ -134,7 +134,7 @@ def main():
                 st_folium(m, width=1200, height=500)
 
         else:
-        st.warning("No se han podido cargar los datos.")
+            st.warning("No se han podido cargar los datos.")
 
     else:
         st.error("No se han podido cargar los datos de la API.")
