@@ -36,7 +36,7 @@ def cargar_datos():
 
             #Convertir precios
 
-            def limpiar_precios(valor):
+            def limpiar_precio(valor):
                 if not valor: return None
                 return float (valor.replace(',', '.'))
 
@@ -53,77 +53,91 @@ def cargar_datos():
         return pd.DataFrame()
 
 #Frontend
-st.title("Precios de Combustible")
-st.markdown("Datos a tiempo real del **Ministerio para la Transición Ecológica**.")
+def main():
+    st.title("Precios de Combustible")
+    st.markdown("Datos a tiempo real del **Ministerio para la Transición Ecológica**.")
 
-#Cargar datos
-df = cargar_datos()
+    #Cargar datos
+    df = cargar_datos()
 
-if not df.empty:
-    #FILTROS
-    st.sidebar.header("Filtros")
-    municipios = sorted(df['Municipio'].unique())
-    municipio_sel = st.sidebar.multiselect("Filtrar por Municipio", municipios)
+    if not df.empty:
+        #FILTROS
+        st.sidebar.header("Filtros")
+        municipios = sorted(df['Municipio'].unique())
+        municipio_sel = st.sidebar.multiselect("Filtrar por Municipio", municipios)
+        tipo_combustible = st.sidebar.radio("⛽ Tipo de Combustible", ["Gasolina 95", "Diesel A"])
+        columna_precio = 'Precio_Gasolina_95' if tipo_combustible == "Gasolina 95" else 'Precio_Diesel_A'
 
-    if municipio_sel:
-        df_filtrado = df[df['Municipio'].isin(municipio_sel)]
-    else:
-        df_filtrado = df
-
-    #Metricas
-    col1, col2, col3 = st.columns(3)
-    media_gasolina = df_filtrado['Precio_Gasolina_95'].mean()
-    media_diesel = df_filtrado['Precio_Diesel_A'].mean()
-
-    col1.metric("Estaciones encontradas", len(df_filtrado))
-    col2.metric("Precio Medio Gasolina 95", f"{media_gasolina:.3f} €")
-    col3.metric("Precio Medio Diesel A", f"{media_diesel:.3f} €")
-
-    #MAPA
-    st.subheader(f"Mapa de Calor de {tipo_combustible}")
-
-    # Centro del mapa basado en el promedio de coordenadas
-    lat_centro = df_filtrado['lat'].mean()
-    lon_centro = df_filtrado['lon'].mean()
-
-    m = folium.Map(location=[lat_centro, lon_centro], zoom_start=11)
-
-    marker_cluster = MarkerCluster().add_to(m)
-
-    for _, fila in df_filtrado.iterrows():
-        precio = fila[columna_precio]
-        nombre = fila['Rótulo']
-        direccion = fila['Dirección']
-
-        # Lógica de colores semánticos
-        if precio <= p33:
-            color = 'green'
-            icono = 'arrow-down'
-        elif precio >= p66:
-            color = 'red'
-            icono = 'arrow-up'
+        if municipio_sel:
+            df_filtrado = df[df['Municipio'].isin(municipio_sel)]
         else:
-            color = 'orange'
-            icono = 'minus'
+            df_filtrado = df
 
-        # Crear el HTML del popup (lo que sale al pinchar)
-        html_popup = f"""
-                <b>{nombre}</b><br>
-                Dirección: {direccion}<br>
-                Precio: <b>{precio} €/L</b>
-                """
+        #Limpiamos datos vacios
+        df_filtrado = df_filtrado.dropna(subset=[columna_precio])
 
-        folium.Marker(
-            location=[fila['lat'], fila['lon']],
-            popup=html_popup,
-            icon=folium.Icon(color=color, icon=icono, prefix='fa')
-        ).add_to(marker_cluster)
+        #Metricas
+        if not df_filtrado.empty:
+            
+            p33 = np.percentile(df_filtrado[columna_precio], 33)
+            p66 = np.percentile(df_filtrado[columna_precio], 66)
+            
+            col1, col2, col3 = st.columns(3)
+            media_gasolina = df_filtrado['Precio_Gasolina_95'].mean()
+            media_diesel = df_filtrado['Precio_Diesel_A'].mean()
 
-    # Renderizar mapa en Streamlit
-    st_folium(m, width=1200, height=500)
+            col1.metric("Estaciones encontradas", len(df_filtrado))
+            col2.metric("Precio Medio Gasolina 95", f"{media_gasolina:.3f} €")
+            col3.metric("Precio Medio Diesel A", f"{media_diesel:.3f} €")
+
+            #MAPA
+            st.subheader(f"Mapa de Calor de {tipo_combustible}")
+
+            # Centro del mapa basado en el promedio de coordenadas
+            lat_centro = df_filtrado['lat'].mean()
+            lon_centro = df_filtrado['lon'].mean()
+
+            m = folium.Map(location=[lat_centro, lon_centro], zoom_start=11)
+
+            marker_cluster = MarkerCluster().add_to(m)
+
+            for _, fila in df_filtrado.iterrows():
+                precio = fila[columna_precio]
+                nombre = fila['Rótulo']
+                direccion = fila['Dirección']
+
+                # Lógica de colores semánticos
+                if precio <= p33:
+                    color = 'green'
+                    icono = 'arrow-down'
+                elif precio >= p66:
+                    color = 'red'
+                    icono = 'arrow-up'
+                else:
+                    color = 'orange'
+                    icono = 'minus'
+
+                # Crear el HTML del popup (lo que sale al pinchar)
+                html_popup = f"""
+                        <b>{nombre}</b><br>
+                        Dirección: {direccion}<br>
+                        Precio: <b>{precio} €/L</b>
+                        """
+
+                folium.Marker(
+                    location=[fila['lat'], fila['lon']],
+                    popup=html_popup,
+                    icon=folium.Icon(color=color, icon=icono, prefix='fa')
+                ).add_to(marker_cluster)
+
+                # Renderizar mapa en Streamlit
+                st_folium(m, width=1200, height=500)
+
+        else:
+        st.warning("No se han podido cargar los datos.")
 
     else:
-    st.warning("No se han podido cargar los datos.")
+        st.error("No se han podido cargar los datos de la API.")
 
-else:
-    st.error("No se han podido cargar los datos de la API.")
+if __name__ == "__main__":
+    main()
