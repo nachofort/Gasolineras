@@ -16,8 +16,8 @@ st.set_page_config(
 
 #Función para obtener y limpiar datos (ETL)
 @st.cache_data
-def cargar_datos():
-    url = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/"
+def cargar_datos(id_ccaa):
+    url = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/{id_ccaa}"
 
 
     try:
@@ -58,7 +58,7 @@ def main():
     st.markdown("Datos a tiempo real del **Ministerio para la Transición Ecológica**.")
 
     #Cargar datos
-    df = cargar_datos()
+    df = cargar_datos(13)
 
     if not df.empty:
         #FILTROS
