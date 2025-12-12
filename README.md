@@ -8,7 +8,7 @@ Este proyecto consulta datos abiertos del Ministerio para visualizar y comparar 
 
 ### ☁️ 1. Versión Cloud (`app_cloud.py`)
 Esta es la versión desplegada para acceso web público.
-- **Enlace al sitio:** [PON_AQUI_TU_LINK_DE_STREAMLIT_O_RENDER]
+- **Enlace al sitio:** https://ignaciofort.streamlit.app/
 - **Estado:** Funcional pero inestable.
 - **🔴 Nota sobre la API:** Actualmente, la API del gobierno (`sedeaplicaciones.minetur.gob.es`) presenta intermitencias y problemas con el certificado SSL. Es posible que la versión web falle ocasionalmente al intentar obtener los datos en tiempo real debido a estas restricciones externas.
 
@@ -20,7 +20,7 @@ Esta es la versión de desarrollo donde se están implementando mejoras y soluci
 ## 🛠️ Tecnologías
 
 * **Lenguaje:** Python 3.14
-* **Librerías clave:** `pandas`, `requests`, `urllib3`
+* **Librerías clave:** `pandas`, `requests`, `streamlit`
 * **Fuente de datos:** API Geoportal Gasolineras (Ministerio para la Transición Ecológica).
 
 ## 🚀 Cómo ejecutar la versión local (En construcción)
